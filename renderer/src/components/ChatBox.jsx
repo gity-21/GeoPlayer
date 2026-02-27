@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../utils/socketClient';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, playerAvatar, isGameScreen = false }) {
+const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, isGameScreen = false }) {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isOpen, setIsOpen] = useState(!isGameScreen);
     const [unreadCount, setUnreadCount] = useState(0);
     const messagesEndRef = useRef(null);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const handleNewChat = (data) => {
@@ -37,8 +39,7 @@ const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, p
             roomId,
             message: inputValue.trim(),
             senderName: playerName,
-            senderColor: playerColor,
-            senderAvatar: playerAvatar || '👽'
+            senderColor: playerColor
         });
         setInputValue('');
     };
@@ -77,7 +78,7 @@ const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, p
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
-                        <span className="text-[10px] font-bold tracking-widest text-white/50 uppercase">SOHBET</span>
+                        <span className="text-[10px] font-bold tracking-widest text-white/50 uppercase">{t('chatTitle')}</span>
                     </div>
                     <button onClick={() => setIsOpen(false)} className="text-white/30 hover:text-white transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -97,8 +98,7 @@ const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, p
                                     className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                                 >
                                     <span className="text-[9px] font-bold mb-1 opacity-40 uppercase flex items-center gap-1" style={{ color: !isMe ? msg.senderColor : undefined }}>
-                                        {!isMe && <span className="text-base leading-none">{msg.senderAvatar || '👽'}</span>}
-                                        {isMe ? 'Sen' : msg.senderName}
+                                        {isMe ? t('chatPrefix') : msg.senderName}
                                     </span>
                                     <div
                                         className={`px-3 py-2 text-sm rounded-xl max-w-[85%] break-words leading-snug ${isMe ? 'bg-brand-primary/10 text-white rounded-tr-none border border-brand-primary/20' : 'bg-white/5 text-white/90 rounded-tl-none border border-white/5'}`}
@@ -119,7 +119,7 @@ const ChatBox = React.memo(function ChatBox({ roomId, playerName, playerColor, p
                             type="text"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="Mesaj gönder..."
+                            placeholder={t('chatInput')}
                             className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-white/30 transition-all font-display text-white placeholder:text-white/20"
                         />
                         <button

@@ -58,17 +58,29 @@ export function calculateScore(distanceKm) {
  * @param {number} rounds - Number of rounds
  * @returns {object} Rating with label and color
  */
-export function getScoreRating(totalScore, rounds = 5) {
+export function getScoreRating(totalScore, rounds = 5, lang = 'TR') {
     const maxScore = rounds * 5000;
     const percentage = (totalScore / maxScore) * 100;
 
-    if (percentage >= 95) return { label: 'KUSURSUZ', color: '#fbbf24', icon: 'perfect' };
-    if (percentage >= 85) return { label: 'MÜKEMMEL', color: '#22d3ee', icon: 'amazing' };
-    if (percentage >= 70) return { label: 'HARİKA', color: '#a855f7', icon: 'great' };
-    if (percentage >= 55) return { label: 'İYİ', color: '#6366f1', icon: 'good' };
-    if (percentage >= 40) return { label: 'İDARE EDER', color: '#22c55e', icon: 'decent' };
-    if (percentage >= 25) return { label: 'ORTALAMA', color: '#f97316', icon: 'okay' };
-    return { label: 'DAHA İYİ OLABİLİR', color: '#ef4444', icon: 'bad' };
+    const labels = {
+        perfect: { TR: 'KUSURSUZ', EN: 'PERFECT' },
+        amazing: { TR: 'MÜKEMMEL', EN: 'AMAZING' },
+        great: { TR: 'HARİKA', EN: 'GREAT' },
+        good: { TR: 'İYİ', EN: 'GOOD' },
+        decent: { TR: 'İDARE EDER', EN: 'DECENT' },
+        okay: { TR: 'ORTALAMA', EN: 'OKAY' },
+        bad: { TR: 'DAHA İYİ OLABİLİR', EN: 'NEEDS WORK' },
+    };
+
+    const pick = (key, color) => ({ label: labels[key][lang] || labels[key]['TR'], color, icon: key });
+
+    if (percentage >= 95) return pick('perfect', '#fbbf24');
+    if (percentage >= 85) return pick('amazing', '#22d3ee');
+    if (percentage >= 70) return pick('great', '#a855f7');
+    if (percentage >= 55) return pick('good', '#6366f1');
+    if (percentage >= 40) return pick('decent', '#22c55e');
+    if (percentage >= 25) return pick('okay', '#f97316');
+    return pick('bad', '#ef4444');
 }
 
 /**

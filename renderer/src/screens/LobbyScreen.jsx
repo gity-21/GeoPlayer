@@ -3,20 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../utils/socketClient';
 import ChatBox from '../components/ChatBox';
 import RotatingGlobe from '../components/RotatingGlobe';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSettings, onGameStart, onLeaveLobby }) {
     const [players, setPlayers] = useState(initialPlayers || []);
     const [settings, setSettings] = useState(initialSettings || {});
     const [isHost, setIsHost] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
-    const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-
+    const { language, t, translateCountry } = useLanguage();
     const PLAYER_COLORS = [
         '#ef4444', '#3b82f6', '#22c55e', '#eab308',
         '#a855f7', '#f97316', '#ec4899', '#14b8a6'
     ];
 
-    const AVATARS = ['👽', '🤖', '👾', '🤠', '🥷', '🧛', '🧙', '🦸', '🦹', '👻', '🧑‍🚀', '🕵️'];
+
 
     useEffect(() => {
         setIsHost(socket.id === hostId);
@@ -82,22 +82,22 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
                     <div className="flex items-center justify-between mb-6 md:mb-8 pb-4 border-b border-white/10">
                         <div>
                             <h2 className="text-3xl font-black font-display tracking-widest text-white mb-1">
-                                LOBI: <span className="text-brand-primary">{roomId}</span>
+                                {t('lobbyCode')}: <span className="text-brand-primary">{roomId}</span>
                             </h2>
                             <p className="text-xs font-mono text-white/40 uppercase tracking-[0.2em]">
-                                Arkadaşlarına bu kodu gönder
+                                {t('shareCode')}
                             </p>
                         </div>
                         <button
                             onClick={handleLeave}
                             className="p-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors font-bold tracking-widest text-xs uppercase"
                         >
-                            AYRIL
+                            {t('leaveLobby')}
                         </button>
                     </div>
 
                     <div className="mb-8">
-                        <h3 className="text-sm font-bold text-white/50 tracking-[0.2em] mb-4">OYUNCULAR ({players.length}/8)</h3>
+                        <h3 className="text-sm font-bold text-white/50 tracking-[0.2em] mb-4">{t('players')} ({players.length}/8)</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <AnimatePresence>
                                 {players.map((p, idx) => (
@@ -114,10 +114,9 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
                                             onClick={() => {
                                                 if (p.id === socket.id) {
                                                     setShowColorPicker(!showColorPicker);
-                                                    setShowAvatarPicker(false);
                                                 }
                                             }}
-                                            title={p.id === socket.id ? "Rengini Seç" : ""}
+                                            title={p.id === socket.id ? "Pick Your Color" : ""}
                                         >
                                             {p.id === socket.id && (
                                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
@@ -143,43 +142,10 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
                                             </div>
                                         )}
 
-                                        <div className="ml-4 flex items-center justify-center p-2 relative group w-12 h-12 bg-white/5 rounded-full border border-white/10 shrink-0">
-                                            <span
-                                                className={`text-2xl ${p.id === socket.id ? 'cursor-pointer group-hover:scale-125 transition-transform' : ''}`}
-                                                title={p.id === socket.id ? "Karakterini Seç" : ""}
-                                                onClick={() => {
-                                                    if (p.id === socket.id) {
-                                                        setShowAvatarPicker(!showAvatarPicker);
-                                                        setShowColorPicker(false);
-                                                    }
-                                                }}
-                                            >
-                                                {p.avatar || '👽'}
-                                            </span>
-
-                                            {p.id === socket.id && showAvatarPicker && (
-                                                <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 z-50 glass border border-white/10 rounded-2xl p-4 shadow-[0_20px_60px_rgba(0,0,0,0.8)] grid grid-cols-4 gap-3 w-max">
-                                                    {AVATARS.map(a => (
-                                                        <button
-                                                            key={a}
-                                                            className={`text-2xl w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-110 active:scale-95 ${p.avatar === a ? 'bg-brand-primary/20 border border-brand-primary/50 scale-110 shadow-[0_0_20px_rgba(124,92,252,0.3)]' : 'bg-white/5 border border-white/10 hover:border-white/50'}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                socket.emit('change_avatar', { roomId, avatar: a });
-                                                                setShowAvatarPicker(false);
-                                                            }}
-                                                        >
-                                                            {a}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="ml-3 flex-1 overflow-hidden">
+                                        <div className="ml-4 flex-1 overflow-hidden">
                                             <div className="text-lg font-bold text-white tracking-widest truncate">{p.name}</div>
                                             {p.id === hostId && (
-                                                <div className="text-[10px] text-brand-primary uppercase font-black uppercase tracking-widest">HOST</div>
+                                                <div className="text-[10px] text-brand-primary uppercase font-black uppercase tracking-widest">{t('host')}</div>
                                             )}
                                         </div>
                                     </motion.div>
@@ -191,7 +157,7 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
                     <div className="border-t border-white/10 pt-6 mt-6 md:mt-0">
                         <div className="flex flex-col md:flex-row gap-4 md:items-center">
                             <div className="flex-1 text-xs text-white/40 uppercase font-mono mt-2 text-center md:text-left">
-                                Ayar: {settings.timerDuration}s - {settings.roundCount} Tur - {settings.country}
+                                {`${t('settingsSummary')}: ${settings.timerDuration}s - ${settings.roundCount} ${t('rounds')} - ${translateCountry(settings.country)}`}
                             </div>
                             {isHost ? (
                                 <button
@@ -199,11 +165,11 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
                                     disabled={players.length < 1} // Can test alone
                                     className="px-8 py-4 bg-emerald-500 text-black font-black hover:scale-105 active:scale-95 transition-all rounded-xl tracking-[0.2em] shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:hover:scale-100"
                                 >
-                                    OYUNU BAŞLAT
+                                    {t('hostStartBtn')}
                                 </button>
                             ) : (
                                 <div className="px-8 py-4 border border-white/10 rounded-xl text-white/50 font-bold uppercase tracking-widest">
-                                    BEKLENİYOR...
+                                    {t('waitingForHost')}
                                 </div>
                             )}
                         </div>
@@ -212,7 +178,7 @@ export default function LobbyScreen({ roomId, hostId, initialPlayers, initialSet
             </div>
 
             {/* ChatBox Component */}
-            <ChatBox roomId={roomId} playerName={me.name || 'Bilinmeyen'} playerColor={me.color || '#fff'} />
+            <ChatBox roomId={roomId} playerName={me.name || 'Unknown'} playerColor={me.color || '#fff'} />
         </div>
     );
 }

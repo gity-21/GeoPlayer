@@ -80,7 +80,7 @@ const StreetViewPanel = React.memo(function StreetViewPanel({ location, roundNum
                                 </svg>
                             </motion.div>
                         </div>
-                        <p className="font-display text-sm tracking-widest uppercase text-white/40 animate-pulse">Lokasyon Hazırlanıyor</p>
+                        <p className="font-display text-sm tracking-widest uppercase text-white/40 animate-pulse">Preparing Location</p>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -100,7 +100,7 @@ const StreetViewPanel = React.memo(function StreetViewPanel({ location, roundNum
                         <circle cx="12" cy="12" r="3"></circle>
                         <line x1="3" y1="3" x2="21" y2="21"></line>
                     </svg>
-                    <span className="text-red-500 font-bold tracking-[0.2em] text-xs uppercase">Hardcore (Kör) Modu</span>
+                    <span className="text-red-500 font-bold tracking-[0.2em] text-xs uppercase">Hardcore (Blind) Mode</span>
                 </div>
             )}
 

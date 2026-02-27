@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import storage from '../utils/storage';
+import { useLanguage } from '../contexts/LanguageContext';
 import RotatingGlobe from '../components/RotatingGlobe';
 import { getAllCountries } from '../data/locations';
-
-const PLAYER_COLORS = [
-    '#ef4444', '#3b82f6', '#22c56e', '#eab308',
-    '#a855f7', '#f97316', '#ec4899', '#14b8a6'
-];
 
 export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJoinLobby }) {
     const [settings, setSettings] = useState({
@@ -19,8 +15,9 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
     const [step, setStep] = useState('main'); // 'main', 'settings', 'join'
     const [joinRoomId, setJoinRoomId] = useState('');
     const [isMultiplayer, setIsMultiplayer] = useState(false);
-    const [playerName, setPlayerName] = useState('Gezgin');
+    const [playerName, setPlayerName] = useState('Traveler');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const { language, setLanguage, t, translateCountry } = useLanguage();
 
     useEffect(() => {
         storage.getProfile().then(profile => {
@@ -72,6 +69,21 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
             <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-white/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
             <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-white/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
+            <AnimatePresence>
+                {step === 'main' && (
+                    <motion.button
+                        key="lang-toggle"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        onClick={() => setLanguage(language === 'TR' ? 'EN' : 'TR')}
+                        className="absolute top-6 right-6 md:top-8 md:right-8 z-50 pointer-events-auto w-12 h-12 flex items-center justify-center glass rounded-full border border-white/10 hover:border-white/30 hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] active:scale-95 transition-all text-sm font-black tracking-widest text-white/80 hover:text-white"
+                    >
+                        {language}
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
 
             <AnimatePresence>
                 {step === 'main' && (
@@ -85,10 +97,10 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                     >
                         <div className="mb-4 mt-6 md:mt-0" />
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black font-display tracking-tighter mb-2 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                            GeoPlayer
+                            {t('title')}
                         </h1>
                         <p className="text-xs md:text-sm font-mono text-white/40 tracking-[0.4em] uppercase">
-                            DÜNYANIN NERESİNDESİN? TAHMİN ET.
+                            {t('subtitle')}
                         </p>
                     </motion.div>
                 )}
@@ -113,13 +125,13 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                 {/* Player Name Input */}
                                 <div className="relative group">
                                     <label className="absolute -top-2 left-6 bg-[#0a0a0a] px-2 text-[10px] font-bold text-white/40 uppercase tracking-widest z-10 transition-colors group-hover:text-white/70">
-                                        Ajan Adı
+                                        {t('agentNameLabel')}
                                     </label>
                                     <input
                                         type="text"
                                         value={playerName}
                                         onChange={(e) => setPlayerName(e.target.value)}
-                                        placeholder="Gezgin"
+                                        placeholder={t('agentNamePlaceholder')}
                                         className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-6 py-5 text-center text-2xl text-white font-black font-display tracking-[0.2em] focus:border-white/40 focus:bg-white/[0.04] outline-none transition-all placeholder:text-white/5"
                                     />
                                 </div>
@@ -130,13 +142,13 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                             onClick={() => handleToSettings(false)}
                                             className="w-full py-4 md:py-5 rounded-full bg-white text-black font-black text-xs md:text-sm tracking-[0.2em] uppercase hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
                                         >
-                                            TEK OYUNCULU
+                                            {t('singlePlayer')}
                                         </button>
                                         <button
                                             onClick={() => handleToSettings(true)}
                                             className="w-full py-4 md:py-5 rounded-full bg-brand-primary text-white font-black text-xs md:text-sm tracking-[0.2em] uppercase hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(124,92,252,0.3)] hover:shadow-[0_0_40px_rgba(124,92,252,0.5)]"
                                         >
-                                            LOBİ KUR
+                                            {t('createLobby')}
                                         </button>
                                     </div>
                                     <div className="flex flex-col sm:flex-row gap-2">
@@ -144,13 +156,13 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                             onClick={handleToJoin}
                                             className="w-full py-3 md:py-4 rounded-full bg-transparent border border-white/20 text-white font-bold text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-white/10 hover:border-white/40 active:scale-95 transition-all"
                                         >
-                                            KATIL
+                                            {t('joinLobbyBtn')}
                                         </button>
                                         <button
                                             onClick={onShowStats}
                                             className="w-full py-3 md:py-4 rounded-full bg-transparent border border-white/10 text-white/60 font-bold text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-white/5 hover:text-white active:scale-95 transition-all"
                                         >
-                                            İSTATİSTİKLER
+                                            {t('statsBtn')}
                                         </button>
                                     </div>
                                 </div>
@@ -173,11 +185,11 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                     </svg>
                                 </button>
                                 <div className="text-center mb-6 pt-4">
-                                    <h3 className="text-xl font-bold tracking-[0.2em] text-white">LOBİYE KATIL</h3>
+                                    <h3 className="text-xl font-bold tracking-[0.2em] text-white">{t('joinLobbyTitle')}</h3>
                                 </div>
                                 <div className="relative group">
                                     <label className="absolute -top-2 left-6 bg-[#0a0a0a] px-2 text-[10px] font-bold text-white/40 uppercase tracking-widest z-10 transition-colors group-hover:text-white/70">
-                                        ODA İD
+                                        {t('roomIdLabel')}
                                     </label>
                                     <input
                                         type="text"
@@ -193,7 +205,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                         onClick={handleJoinRoom}
                                         className="w-full py-5 rounded-full bg-brand-primary text-white font-black text-xl tracking-[0.3em] uppercase hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(124,92,252,0.3)] hover:shadow-[0_0_40px_rgba(124,92,252,0.5)]"
                                     >
-                                        KATIL
+                                        {t('joinLobbyBtn')}
                                     </button>
                                 </div>
                             </motion.div>
@@ -215,33 +227,33 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                 </button>
 
                                 <div className="text-center mb-6 pt-4">
-                                    <h3 className="text-xl font-bold tracking-[0.2em] text-white">GÖREV AYARLARI</h3>
+                                    <h3 className="text-xl font-bold tracking-[0.2em] text-white">{t('roomSettingsTitle')}</h3>
                                 </div>
 
                                 {/* Game Mode Selection */}
                                 <div className="text-center mt-2 relative z-[60]">
                                     <label className="block text-center text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[0.3em]">
-                                        OYUN MODU
+                                        {t('gameModeLabel')}
                                     </label>
                                     <div className="flex bg-white/5 p-1 rounded-2xl w-full">
                                         <button
                                             onClick={() => setSettings({ ...settings, mode: 'classic' })}
                                             className={`flex-1 px-2 sm:px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${settings.mode === 'classic' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
                                         >
-                                            KLASİK
+                                            {t('modeClassic')}
                                         </button>
                                         <button
                                             onClick={() => setSettings({ ...settings, mode: 'hardcore' })}
                                             className={`flex-1 px-2 sm:px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${settings.mode === 'hardcore' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] scale-105' : 'text-white/40 hover:text-white/80'}`}
                                         >
-                                            HARDCORE
+                                            {t('modeHardcore')}
                                         </button>
                                         {isMultiplayer && (
                                             <button
                                                 onClick={() => setSettings({ ...settings, mode: 'battleroyale' })}
                                                 className={`flex-1 px-2 sm:px-4 py-3 rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${settings.mode === 'battleroyale' ? 'bg-brand-primary text-white shadow-[0_0_15px_rgba(124,92,252,0.4)] scale-105' : 'text-white/40 hover:text-white/80'}`}
                                             >
-                                                B. ROYALE
+                                                {t('modeBR')}
                                             </button>
                                         )}
                                     </div>
@@ -250,7 +262,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                 {/* Round Count */}
                                 <div className="relative group mt-4">
                                     <label className="absolute -top-2 left-6 bg-[#0a0a0a] px-2 text-[10px] font-bold text-white/40 uppercase tracking-widest z-10 transition-colors group-hover:text-white/70">
-                                        Raund Sayısı <span className="text-[8px] opacity-50">(MAX 12)</span>
+                                        {t('roundCountLabel')} <span className="text-[8px] opacity-50">{t('roundCountMax')}</span>
                                     </label>
                                     <div className="flex items-center w-full bg-white/[0.02] border border-white/10 rounded-2xl focus-within:border-white/40 focus-within:bg-white/[0.04] transition-all overflow-hidden">
                                         <button
@@ -289,7 +301,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                 {/* Timer Duration */}
                                 <div className="relative group">
                                     <label className="absolute -top-2 left-6 bg-[#0a0a0a] px-2 text-[10px] font-bold text-white/40 uppercase tracking-widest z-10 transition-colors group-hover:text-white/70">
-                                        Zaman Sınırı <span className="text-[8px] opacity-50">(SANİYE, MAX 500)</span>
+                                        {t('timeLimitLabel')} <span className="text-[8px] opacity-50">{t('timeLimitMax')}</span>
                                     </label>
                                     <div className="flex items-center w-full bg-white/[0.02] border border-white/10 rounded-2xl focus-within:border-white/40 focus-within:bg-white/[0.04] transition-all overflow-hidden">
                                         <button
@@ -328,7 +340,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                 {/* Country Filter */}
                                 <div className="relative z-50">
                                     <label className="block text-center text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[0.3em]">
-                                        LOKASYON FİLTRESİ
+                                        {t('locationFilter')}
                                     </label>
                                     <div className="relative">
                                         <div
@@ -336,7 +348,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                             className={`w-full bg-[#0a0a0a] border ${isDropdownOpen ? 'border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'border-white/10'} rounded-2xl px-6 py-4 flex items-center justify-center cursor-pointer transition-all hover:border-white/30 group`}
                                         >
                                             <span className="text-lg text-white font-bold tracking-[0.1em] text-center">
-                                                {settings.country}
+                                                {translateCountry(settings.country)}
                                             </span>
                                             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                                                 <svg className={`w-5 h-5 text-white/50 transition-transform duration-300 group-hover:text-white ${isDropdownOpen ? 'rotate-180 text-white' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -363,7 +375,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                                             }}
                                                             className={`px-6 py-4 text-center text-sm font-bold tracking-widest cursor-pointer transition-colors border-b border-white/[0.02] last:border-0 ${settings.country === country ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}
                                                         >
-                                                            {country}
+                                                            {translateCountry(country)}
                                                         </div>
                                                     ))}
                                                 </motion.div>
@@ -377,7 +389,7 @@ export default function HomeScreen({ onStartGame, onShowStats, onHostLobby, onJo
                                         onClick={handleStartGame}
                                         className={`w-full py-5 rounded-full text-black font-black text-xl tracking-[0.3em] uppercase hover:scale-105 active:scale-95 transition-all ${isMultiplayer ? 'bg-brand-primary text-white shadow-[0_0_30px_rgba(124,92,252,0.3)] hover:shadow-[0_0_40px_rgba(124,92,252,0.5)]' : 'bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)]'}`}
                                     >
-                                        {isMultiplayer ? 'LOBİ OLUŞTUR' : 'MACERAYA ATIL'}
+                                        {isMultiplayer ? t('btnStartLobby') : t('btnStartGame')}
                                     </button>
                                 </div>
                             </motion.div>

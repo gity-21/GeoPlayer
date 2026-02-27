@@ -5,10 +5,11 @@ import GameMap from '../components/GameMap';
 import ChatBox from '../components/ChatBox';
 import EmojiReactions from '../components/EmojiReactions';
 import { getRandomLocations, getLocationsByCountry } from '../data/locations';
-import { haversineDistance, calculateScore, formatDistance } from '../utils/gameLogic';
+import { haversineDistance, calculateScore } from '../utils/gameLogic';
 import { socket } from '../utils/socketClient';
 import storage from '../utils/storage';
 import audioManager from '../utils/audioManager';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultiplayer, roomId, multiplayerLocations, isHost }) {
     const [rounds, setRounds] = useState(() => {
@@ -29,6 +30,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
     const [amIEliminated, setAmIEliminated] = useState(false);
     const [comboCount, setComboCount] = useState(0);
     const [showComboMessage, setShowComboMessage] = useState(false);
+    const { language, t, translateCountry } = useLanguage();
 
 
     const timerRef = useRef(null);
@@ -37,9 +39,10 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
     // Initialize game
     useEffect(() => {
         if (!isMultiplayer) {
-            const locations = gameSettings.country && gameSettings.country !== 'Dünya Geneli (Karışık)'
-                ? getLocationsByCountry(gameSettings.country, gameSettings.roundCount)
-                : getRandomLocations(gameSettings.roundCount);
+            const isWorldwide = !gameSettings.country || gameSettings.country === 'Dünya Geneli (Karışık)';
+            const locations = isWorldwide
+                ? getRandomLocations(gameSettings.roundCount)
+                : getLocationsByCountry(gameSettings.country, gameSettings.roundCount);
             setRounds(locations);
         }
     }, [gameSettings.roundCount, gameSettings.country, isMultiplayer]);
@@ -69,7 +72,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                 const previouslyEliminated = multiplayerRoundData.filter(p => p.isEliminated).length;
                 const nowEliminated = data.players.filter(p => p.isEliminated).length;
                 if (nowEliminated > previouslyEliminated) {
-                    setTimeout(() => audioManager.speak('Bir ajan elendi', 'tr-TR'), 1000);
+                    setTimeout(() => audioManager.speak('An agent was eliminated', 'en-US'), 1000);
                 }
             }
 
@@ -190,7 +193,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                     return 0;
                 }
                 if (prev === 11) {
-                    audioManager.speak('Zaman daralıyor', 'tr-TR');
+                    audioManager.speak('Time is running out', 'en-US');
                 }
                 if (prev <= 11 && prev > 1) {
                     audioManager.playTickTock();
@@ -315,7 +318,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                 `}</style>
                 <div className="w-16 h-16 border-4 border-white/10 border-t-brand-primary rounded-full mb-6" style={{ animation: 'spin-slow 1.2s linear infinite' }} />
                 <h3 className="text-white/60 font-bold tracking-[0.3em] text-sm uppercase font-display animate-pulse">
-                    LOKASYONLAR YÜKLENİYOR
+                    {t('loading')}
                 </h3>
             </div>
         );
@@ -329,7 +332,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
         socket.emit('send_reaction', {
             roomId,
             emoji,
-            senderName: myPlayer ? myPlayer.name : 'Ajan'
+            senderName: myPlayer ? myPlayer.name : 'Agent'
         });
     }
 
@@ -339,9 +342,8 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
             {isMultiplayer && myPlayer && (
                 <ChatBox
                     roomId={roomId}
-                    playerName={myPlayer.name || 'Ajan'}
+                    playerName={myPlayer.name || 'Agent'}
                     playerColor={myPlayer.color || '#fff'}
-                    playerAvatar={myPlayer.avatar || '👽'}
                     isGameScreen={true}
                 />
             )}
@@ -364,12 +366,12 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                         className="glass px-5 py-3 rounded-2xl flex items-center gap-4 pointer-events-auto"
                     >
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">RAUND</span>
+                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{t('round')}</span>
                             <span className="text-xl font-bold font-display">{currentRoundIndex + 1} / {gameSettings.roundCount}</span>
                         </div>
                         <div className="w-[1px] h-8 bg-white/10" />
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">TOPLAM PUAN</span>
+                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{t('totalScore')}</span>
                             <span className="text-xl font-bold font-display text-white/70">
                                 {roundResults.reduce((sum, r) => sum + r.score, 0)}
                             </span>
@@ -387,7 +389,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                 <line x1="15" y1="9" x2="9" y2="15"></line>
                                 <line x1="9" y1="9" x2="15" y2="15"></line>
                             </svg>
-                            <span className="text-red-500 font-black tracking-[0.2em] text-sm text-center uppercase">ELENDİNİZ - İZLEYİCİ MODU</span>
+                            <span className="text-red-500 font-black tracking-[0.2em] text-sm text-center uppercase">{t('eliminatedSpectator')}</span>
                         </motion.div>
                     )}
 
@@ -400,28 +402,10 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                 className="absolute top-24 right-1/2 translate-x-1/2 pointer-events-none z-[100] flex flex-col items-center"
                             >
                                 <span className="text-[10px] font-black tracking-[0.3em] uppercase opacity-70 mb-1" style={{ color: `hsl(${(comboCount * 40) % 360}, 100%, 70%)` }}>
-                                    {comboCount}x KOMBO
+                                    {comboCount}x {t('comboLabel')}
                                 </span>
                                 <h1 className="text-4xl md:text-5xl font-black italic drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]" style={{ color: `hsl(${(comboCount * 40) % 360}, 100%, 70%)` }}>
-                                    MÜKEMMEL TAHMİN!
-                                </h1>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <AnimatePresence>
-                        {showComboMessage && (
-                            <motion.div
-                                initial={{ scale: 0.5, y: -20, opacity: 0 }}
-                                animate={{ scale: 1, y: 0, opacity: 1 }}
-                                exit={{ scale: 1.5, opacity: 0 }}
-                                className="absolute top-24 right-1/2 translate-x-1/2 pointer-events-none z-[100] flex flex-col items-center"
-                            >
-                                <span className="text-[10px] font-black tracking-[0.3em] uppercase opacity-70 mb-1" style={{ color: `hsl(${(comboCount * 40) % 360}, 100%, 70%)` }}>
-                                    {comboCount}x KOMBO
-                                </span>
-                                <h1 className="text-4xl md:text-5xl font-black italic drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]" style={{ color: `hsl(${(comboCount * 40) % 360}, 100%, 70%)` }}>
-                                    MÜKEMMEL TAHMİN!
+                                    {t('perfectGuess')}
                                 </h1>
                             </motion.div>
                         )}
@@ -433,7 +417,9 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                             animate={{ x: 0, opacity: 1 }}
                             className={`glass px-6 py-3 h-[68px] rounded-2xl flex flex-col items-center justify-center pointer-events-auto ${timeLeft <= 10 ? 'border-red-500/50 text-red-400' : ''}`}
                         >
-                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">SÜRE</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
+                                {t('timeLabel')}
+                            </span>
                             <span className="text-2xl font-mono font-bold leading-none">{timeLeft}</span>
                         </motion.div>
 
@@ -468,7 +454,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                         {!showResult && (
                             <div className="absolute top-3 left-3 pointer-events-none">
                                 <div className="glass px-3 py-1.5 rounded-full text-[10px] font-bold text-white/60 uppercase tracking-tighter">
-                                    Tahminini Yerleştir
+                                    {t('placeGuess')}
                                 </div>
                             </div>
                         )}
@@ -491,7 +477,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                 : 'bg-white/5 text-white/20 border border-white/5 backdrop-blur-sm pointer-events-none'
                                 }`}
                         >
-                            {amIEliminated ? 'İZLEYİCİ' : waitingForOthers ? 'BEKLENİYOR...' : 'TAHMİN ET'}
+                            {amIEliminated ? t('spectator') : waitingForOthers ? t('waitingPlayers') : t('submitGuess')}
                         </motion.button>
                     )}
                 </AnimatePresence>
@@ -502,7 +488,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                 onClick={onQuit}
                 className="absolute top-6 left-1/2 -translate-x-1/2 glass px-4 py-2 rounded-xl text-xs font-bold text-white/30 hover:text-red-400 hover:border-red-500/30 transition-all z-30"
             >
-                OYUNDAN ÇIK
+                {t('quitGame')}
             </button>
 
 
@@ -523,13 +509,17 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                             transition={{ type: "spring", damping: 20 }}
                             className="text-center"
                         >
-                            <span className="text-white/70 font-bold tracking-[0.3em] uppercase mb-4 block">HAZIR MISIN?</span>
-                            <h2 className="text-8xl font-black font-display mb-8">RAUND {currentRoundIndex + 1}</h2>
+                            <span className="text-white/70 font-bold tracking-[0.3em] uppercase mb-4 block">
+                                {t('areYouReady')}
+                            </span>
+                            <h2 className="text-8xl font-black font-display mb-8">
+                                {t('round')} {currentRoundIndex + 1}
+                            </h2>
                             <button
                                 onClick={() => setShowRoundTransition(false)}
                                 className="px-16 py-5 rounded-full outline-none bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95 font-black tracking-[0.3em] text-2xl transition-all"
                             >
-                                BAŞLA
+                                {t('start')}
                             </button>
                         </motion.div>
                     </motion.div>
@@ -552,7 +542,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                             className="text-center flex flex-col items-center max-w-xl"
                         >
                             <span className="text-white/40 font-bold tracking-[0.5em] uppercase mb-4 block">
-                                {roundResults[roundResults.length - 1].actual.country}
+                                {translateCountry(roundResults[roundResults.length - 1].actual.country)}
                             </span>
                             <h2 className="text-6xl md:text-8xl font-black font-display mb-12 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] leading-none">
                                 {roundResults[roundResults.length - 1].actual.city}
@@ -560,7 +550,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
 
                             <div className="flex gap-12 justify-center mb-10 px-8 py-6 rounded-3xl bg-white/[0.03] border border-white/5 shadow-xl">
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-3">MESAFE</span>
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-3">{t('distanceLabel')}</span>
                                     <span className="text-4xl md:text-5xl font-black font-mono text-white">
                                         {roundResults[roundResults.length - 1].distance < 1
                                             ? Math.round(roundResults[roundResults.length - 1].distance * 1000) + ' m'
@@ -569,7 +559,7 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                 </div>
                                 <div className="w-[1px] bg-white/10" />
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-3">KAZANILAN PUAN</span>
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-3">{t('score')}</span>
                                     <span className="text-4xl md:text-5xl font-black font-mono text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
                                         +{roundResults[roundResults.length - 1].score}
                                     </span>
@@ -581,9 +571,11 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                     <div className="flex items-start gap-3">
                                         <div className="text-xl pt-1">💡</div>
                                         <div>
-                                            <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest block mb-1">BİLİYOR MUYDUN?</span>
+                                            <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest block mb-1">{t('didYouKnow')}</span>
                                             <p className="text-white/80 text-sm italic font-medium leading-relaxed">
-                                                "{roundResults[roundResults.length - 1].actual.funFact}"
+                                                {language === 'EN'
+                                                    ? (roundResults[roundResults.length - 1].actual.funFactEN || roundResults[roundResults.length - 1].actual.funFact)
+                                                    : roundResults[roundResults.length - 1].actual.funFact}
                                             </p>
                                         </div>
                                     </div>
@@ -592,26 +584,27 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
 
                             {isMultiplayer && multiplayerRoundData && (
                                 <div className="w-full max-w-lg mx-auto mb-10 flex flex-col gap-2 relative z-50">
-                                    <h3 className="text-white/40 font-bold uppercase tracking-[0.2em] text-[10px] mb-2">DİĞER AJANLAR</h3>
+                                    <h3 className="text-white/40 font-bold uppercase tracking-[0.2em] text-[10px] mb-2">
+                                        {t('otherAgents')}
+                                    </h3>
                                     {multiplayerRoundData.sort((a, b) => b.lastScore - a.lastScore).map(p => (
                                         <div key={p.id} className="bg-white/5 rounded-xl p-3 flex items-center justify-between border border-white/5 relative group cursor-pointer transition-all hover:bg-white/10 hover:border-white/20">
                                             <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl" style={{ backgroundColor: p.color }} />
                                             <div className="pl-4 font-bold text-white/80 flex items-center gap-3">
-                                                <span className="text-xl">{p.avatar || '👽'}</span>
                                                 <span>{p.name}</span>
-                                                {p.isEliminated && <span className="text-[10px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]">💀 ELENDİ</span>}
+                                                {p.isEliminated && <span className="text-[10px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]">{t('eliminated')}</span>}
                                             </div>
-                                            <div className="font-mono font-black text-emerald-400">+{p.lastScore || 0} PTS</div>
+                                            <div className="font-mono font-black text-emerald-400">+{p.lastScore || 0} {t('pts')}</div>
 
                                             {/* Hover Tooltip */}
                                             <div className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-max bg-[#0a0a0a] px-4 py-3 rounded-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-center gap-4">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">MESAFE YAKINLIĞI</span>
+                                                    <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">{t('distance')}</span>
                                                     <span className="font-mono text-white text-lg font-black">{Math.round(p.lastDistance || 0)} {p.lastDistance < 1 ? 'm' : 'km'}</span>
                                                 </div>
                                                 <div className="w-[1px] h-6 bg-white/10" />
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">RAUND PUANI</span>
+                                                    <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">{t('roundScore')}</span>
                                                     <span className="font-mono text-emerald-400 text-lg font-black">+{p.lastScore || 0}</span>
                                                 </div>
                                                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-x-8 border-x-transparent border-t-8 border-t-[#0a0a0a]" />
@@ -640,11 +633,11 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                                     onClick={handleNextRound}
                                     className="w-full py-6 rounded-full font-black tracking-[0.3em] uppercase bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 transition-all text-xl"
                                 >
-                                    {currentRoundIndex + 1 < gameSettings.roundCount ? 'SIRADAKİ RAUNDA GEÇ' : 'SONUÇLARI GÖR'}
+                                    {currentRoundIndex + 1 < gameSettings.roundCount ? t('nextRound') : t('seeResults')}
                                 </button>
                             ) : (
                                 <div className="w-full py-6 rounded-full font-black tracking-[0.2em] uppercase border border-white/10 text-white/40 text-sm">
-                                    Lobi Yöneticisi Bekleniyor...
+                                    {t('waitingForHost')}
                                 </div>
                             )}
                         </motion.div>
@@ -663,8 +656,8 @@ export default function GameScreen({ gameSettings, onGameEnd, onQuit, isMultipla
                     >
                         <div className="glass px-10 py-8 rounded-[32px] flex flex-col items-center justify-center border-brand-primary/20 shadow-[0_0_60px_rgba(124,92,252,0.1)]">
                             <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mb-6" />
-                            <h2 className="text-2xl font-black font-display text-white tracking-widest mb-2">TAHMİNİNİZ ALINDI</h2>
-                            <p className="text-white/40 font-mono text-sm tracking-widest uppercase">Diğer oyuncular bekleniyor...</p>
+                            <h2 className="text-2xl font-black font-display text-white tracking-widest mb-2">{t('guessSubmitted')}</h2>
+                            <p className="text-white/40 font-mono text-sm tracking-widest uppercase">{t('waitingPlayers')}</p>
                         </div>
                     </motion.div>
                 )}

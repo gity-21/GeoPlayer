@@ -3,17 +3,9 @@ import React, { useState, useEffect } from 'react';
 const isElectron = typeof window !== 'undefined' && window.electronAPI;
 
 export default function TitleBar() {
-    const [isMaximized, setIsMaximized] = useState(false);
-
     useEffect(() => {
         if (!isElectron) return;
 
-        const checkMaximized = async () => {
-            const result = await window.electronAPI.isMaximized();
-            setIsMaximized(result);
-        };
-
-        checkMaximized();
         // We could add an event listener here if we had one in preload
     }, []);
 
@@ -23,8 +15,6 @@ export default function TitleBar() {
 
     const handleMaximize = async () => {
         await window.electronAPI.maximizeWindow();
-        const result = await window.electronAPI.isMaximized();
-        setIsMaximized(result);
     };
 
     const handleClose = () => {

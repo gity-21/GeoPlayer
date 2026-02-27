@@ -9,7 +9,12 @@ if (isDev) {
 
 // Start the local multiplayer server in the background
 try {
-    require(path.join(__dirname, '..', 'server.js'));
+    // In production, server.js is extracted outside the asar archive (asarUnpack)
+    // so its require() calls for express/socket.io can resolve node_modules correctly.
+    const serverPath = app.isPackaged
+        ? path.join(process.resourcesPath, 'app.asar.unpacked', 'server.js')
+        : path.join(__dirname, '..', 'server.js');
+    require(serverPath);
 } catch (error) {
     console.error("Failed to start integrated multiplayer server:", error);
 }
@@ -34,7 +39,7 @@ function createWindow() {
             // Enable sensor features for Google Street View
             enableBlinkFeatures: 'SensorExtraClasses',
         },
-        icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+        icon: path.join(__dirname, '..', 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
         show: false,
     });
 
@@ -118,7 +123,7 @@ ipcMain.handle('storage:set', (event, key, value) => {
 // Audio files IPC handler
 ipcMain.handle('audio:getMusicFiles', () => {
     const fs = require('fs');
-    // Müzikleri artık Vite'ın public/assets (dev) veya dist/assets (prod) klasöründen okuyacağız
+    // Read music files from Vite's public/assets (dev) or dist/assets (prod)
     const assetsDir = isDev
         ? path.join(__dirname, '..', 'renderer', 'public', 'assets')
         : path.join(__dirname, '..', 'renderer', 'dist', 'assets');
@@ -126,7 +131,7 @@ ipcMain.handle('audio:getMusicFiles', () => {
     try {
         if (fs.existsSync(assetsDir)) {
             const files = fs.readdirSync(assetsDir);
-            // Sadece mp3, ogg veya wav dosyalarını alalım
+            // Only include mp3, ogg, or wav files
             const musicFiles = files.filter(file => file.match(/\.(mp3|wav|ogg)$/i));
             return musicFiles;
         }

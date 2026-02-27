@@ -68,7 +68,7 @@ const storage = {
     // Player profile
     async getProfile() {
         const defaults = {
-            name: 'Gezgin',
+            name: 'Traveler',
             gamesPlayed: 0,
             totalScore: 0,
             bestScore: 0,
@@ -128,7 +128,7 @@ const storage = {
             const scores = await storage.getHighScores();
 
             return {
-                name: profile?.name || 'Gezgin',
+                name: profile?.name || 'Traveler',
                 gamesPlayed: profile?.gamesPlayed || 0,
                 totalScore: profile?.totalScore || 0,
                 bestScore: profile?.bestScore || 0,
@@ -140,7 +140,7 @@ const storage = {
             console.error("Critical error in getStats:", err);
             // Return minimal valid object to prevent UI crash
             return {
-                name: 'Gezgin',
+                name: 'Traveler',
                 gamesPlayed: 0,
                 totalScore: 0,
                 bestScore: 0,

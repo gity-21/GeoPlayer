@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import storage from '../utils/storage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function StatsScreen({ onBack }) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('single');
+    const { language, t, translateCountry } = useLanguage();
 
     useEffect(() => {
         let mounted = true;
@@ -14,7 +16,7 @@ export default function StatsScreen({ onBack }) {
         // Timeout to prevent infinite loading
         const timeout = setTimeout(() => {
             if (mounted && loading) {
-                setError("Yükleme zaman aşımına uğradı. Veri erişiminde bir sorun olabilir.");
+                setError("Loading timed out. There may be an issue accessing data.");
                 setLoading(false);
             }
         }, 5000);
@@ -23,7 +25,7 @@ export default function StatsScreen({ onBack }) {
             try {
                 // Robust verification of storage object
                 if (!storage || typeof storage.getStats !== 'function') {
-                    throw new Error("Depolama sistemi başlatılamadı.");
+                    throw new Error("Storage system could not be initialized.");
                 }
 
                 const data = await storage.getStats();
@@ -35,7 +37,7 @@ export default function StatsScreen({ onBack }) {
             } catch (err) {
                 if (mounted) {
                     console.error("Stats load error:", err);
-                    setError(err.message || "Bilinmeyen bir veri hatası");
+                    setError(err.message || "An unknown data error occurred");
                     setLoading(false);
                     clearTimeout(timeout);
                 }
@@ -54,7 +56,7 @@ export default function StatsScreen({ onBack }) {
             <div className="h-full w-full flex items-center justify-center bg-black">
                 <div className="flex flex-col items-center gap-6">
                     <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
-                    <div className="text-white/70 font-display text-sm tracking-[0.3em] uppercase animate-pulse">Veriler Hazırlanıyor</div>
+                    <div className="text-white/70 font-display text-sm tracking-[0.3em] uppercase animate-pulse">{t('loadingStats')}</div>
                 </div>
             </div>
         );
@@ -71,18 +73,18 @@ export default function StatsScreen({ onBack }) {
                     </svg>
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-white font-display">İstatistikler Yüklenemedi</h2>
-                    <p className="text-white/40 max-w-sm mx-auto">Veri okunurken bir hata oluştu. Ayarlarınız veya geçmişiniz bozuk olabilir.</p>
+                    <h2 className="text-2xl font-bold text-white font-display">{t('statsError')}</h2>
+                    <p className="text-white/40 max-w-sm mx-auto">{t('statsErrorMsg')}</p>
                 </div>
                 <div className="text-white/20 font-mono text-[10px] bg-white/5 p-4 rounded-xl max-w-md overflow-hidden text-ellipsis italic">
-                    {error || 'Veri seti boş döndü'}
+                    {error || 'Dataset returned empty'}
                 </div>
-                <button onClick={onBack} className="btn-primary px-12 py-4">ANA MENÜYE DÖN</button>
+                <button onClick={onBack} className="btn-primary px-12 py-4">{t('backToMenu')}</button>
             </div>
         );
     }
 
-    const formatNum = (num) => (typeof num === 'number' ? num : 0).toLocaleString('tr-TR');
+    const formatNum = (num) => (typeof num === 'number' ? num : 0).toLocaleString(language === 'EN' ? 'en-US' : 'tr-TR');
 
     return (
         <div className="h-full w-full flex flex-col items-center p-4 md:p-6 bg-black overflow-y-auto custom-scrollbar">
@@ -93,9 +95,11 @@ export default function StatsScreen({ onBack }) {
             >
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-10">
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.5em] mb-2">OYUNCU PROFİLİ</span>
+                        <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.5em] mb-2">
+                            {t('playerProfile')}
+                        </span>
                         <h2 className="text-4xl md:text-5xl font-black font-display tracking-tighter text-white capitalize leading-none">
-                            {stats?.name || 'Gezgin'}
+                            {stats?.name || 'Traveler'}
                         </h2>
                     </div>
                     <button
@@ -105,15 +109,15 @@ export default function StatsScreen({ onBack }) {
                         <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        GERİ DÖN
+                        {t('closeBtn')}
                     </button>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-10">
-                    <StatCard label="Oynanan Oyun" value={formatNum(stats?.gamesPlayed)} color="neutral" />
-                    <StatCard label="Toplam Puan" value={formatNum(stats?.totalScore)} color="neutral" />
-                    <StatCard label="En İyi Skor" value={formatNum(stats?.bestScore)} color="neutral" />
-                    <StatCard label="Ortalama" value={formatNum(stats?.averageScore)} color="neutral" />
+                    <StatCard label={t('gamesPlayed')} value={formatNum(stats?.gamesPlayed)} color="neutral" />
+                    <StatCard label={t('totalScore')} value={formatNum(stats?.totalScore)} color="neutral" />
+                    <StatCard label={t('bestScore')} value={formatNum(stats?.bestScore)} color="neutral" />
+                    <StatCard label={t('avgScore')} value={formatNum(stats?.averageScore)} color="neutral" />
                 </div>
 
                 <div className="flex-grow">
@@ -124,20 +128,20 @@ export default function StatsScreen({ onBack }) {
                                     <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            Maç Geçmişi
+                            {language === 'EN' ? 'Match History' : 'Maç Geçmişi'}
                         </h3>
                         <div className="flex bg-white/5 p-1 rounded-xl w-full sm:w-auto">
                             <button
                                 onClick={() => setActiveTab('single')}
                                 className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'single' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
                             >
-                                TEK OYUNCULU
+                                {language === 'EN' ? 'SINGLE PLAYER' : 'TEK OYUNCULU'}
                             </button>
                             <button
                                 onClick={() => setActiveTab('multi')}
                                 className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'multi' ? 'bg-brand-primary text-white shadow-[0_0_15px_rgba(124,92,252,0.4)] scale-105' : 'text-white/40 hover:text-white/80'}`}
                             >
-                                ÇOK OYUNCULU
+                                {language === 'EN' ? 'MULTIPLAYER' : 'ÇOK OYUNCULU'}
                             </button>
                         </div>
                     </div>
@@ -157,8 +161,16 @@ export default function StatsScreen({ onBack }) {
                                                 <line x1="2" y1="22" x2="22" y2="22"></line>
                                             </svg>
                                         </div>
-                                        <div className="text-white/20 font-bold text-lg mb-1">Henüz Maç Yok</div>
-                                        <div className="text-white/10 text-xs text-center">Bu kategoride hiç oyun oynamadın.<br />Maceraya atıl ve sıralamaya gir!</div>
+                                        <div className="text-white/20 font-bold text-lg mb-1">
+                                            {language === 'EN' ? 'No Matches Yet' : 'Henüz Maç Yok'}
+                                        </div>
+                                        <div className="text-white/10 text-xs text-center">
+                                            {language === 'EN' ? (
+                                                <>No games in this category yet.<br />Start adventuring and climb the ranks!</>
+                                            ) : (
+                                                <>Bu kategoride henüz oyun yok.<br />Maceraya atıl ve sıralamaya gir!</>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             }
@@ -175,19 +187,24 @@ export default function StatsScreen({ onBack }) {
                                         <div className="flex items-center gap-5">
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-white/90 text-sm">
-                                                    {game?.date ? new Date(game.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Bilinmeyen Tarih'}
+                                                    {game?.date
+                                                        ? new Date(game.date).toLocaleDateString(
+                                                            language === 'EN' ? 'en-US' : 'tr-TR',
+                                                            { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
+                                                        )
+                                                        : t('unknownDate')}
                                                 </span>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="px-2 py-0.5 rounded-md bg-white/5 text-[8px] text-white/50 uppercase tracking-[0.2em] font-black">
-                                                        {game?.settings?.mode || 'KLASİK'}
+                                                        {game?.settings?.mode || 'CLASSIC'}
                                                     </span>
                                                     <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                                                    <span className="text-[9px] text-white/30 font-bold tracking-tight uppercase max-w-[120px] truncate" title={game?.settings?.country || 'GLOBAL'}>
-                                                        {game?.settings?.country || 'GLOBAL'}
+                                                    <span className="text-[9px] text-white/30 font-bold tracking-tight uppercase max-w-[120px] truncate" title={translateCountry(game?.settings?.country) || 'GLOBAL'}>
+                                                        {translateCountry(game?.settings?.country) || 'GLOBAL'}
                                                     </span>
                                                     <span className="w-1 h-1 rounded-full bg-white/20"></span>
                                                     <span className="text-[9px] text-white/30 font-bold tracking-tight uppercase">
-                                                        {game?.settings?.roundCount || 5} RAUND
+                                                        {game?.settings?.roundCount || 5} {t('rounds')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -202,7 +219,9 @@ export default function StatsScreen({ onBack }) {
                                     {/* Multiplayer Opponents Display */}
                                     {activeTab === 'multi' && game.multiplayerPlayers && game.multiplayerPlayers.length > 0 && (
                                         <div className="mt-4 pt-3 border-t border-white/5 flex flex-wrap gap-2">
-                                            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest w-full mb-1">Katılımcılar:</span>
+                                            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest w-full mb-1">
+                                                {t('participants')}
+                                            </span>
                                             {game.multiplayerPlayers.sort((a, b) => b.score - a.score).map((p, i) => (
                                                 <div key={p.id} className="flex items-center gap-2 bg-[#0a0a0a] border border-white/10 px-3 py-1.5 rounded-lg">
                                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />

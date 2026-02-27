@@ -9,6 +9,7 @@ import LobbyScreen from './screens/LobbyScreen';
 import { socket } from './utils/socketClient';
 import { getRandomLocations, getLocationsByCountry } from './data/locations';
 import storage from './utils/storage';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const SCREENS = {
     HOME: 'home',
@@ -81,7 +82,7 @@ export default function App() {
                 });
                 setCurrentScreen(SCREENS.LOBBY);
             } else {
-                alert(response.message || 'Lobiye katılınamadı.');
+                alert(response.message || 'Could not join lobby.');
             }
         });
     }, []);
@@ -89,9 +90,10 @@ export default function App() {
     const handleMultiplayerGameStart = useCallback((data) => {
         if (data.intent === 'start' && lobbyData) {
             // Generate locations based on lobby settings
-            const locations = gameSettings.country && gameSettings.country !== 'Dünya Geneli (Karışık)'
-                ? getLocationsByCountry(gameSettings.country, gameSettings.roundCount)
-                : getRandomLocations(gameSettings.roundCount);
+            const isWorldwide = !gameSettings.country || gameSettings.country === 'Dünya Geneli (Karışık)';
+            const locations = isWorldwide
+                ? getRandomLocations(gameSettings.roundCount)
+                : getLocationsByCountry(gameSettings.country, gameSettings.roundCount);
             socket.emit('start_game', { roomId: lobbyData.roomId, roundLocations: locations });
         } else if (data.roundLocations) {
             // Game actually started locally
@@ -133,110 +135,112 @@ export default function App() {
     }, [isMultiplayer]);
 
     return (
-        <div className="w-full h-full text-white bg-black flex flex-col overflow-hidden">
-            {/* Only show TitleBar in Electron or desktop */}
-            {isElectron && <TitleBar />}
+        <LanguageProvider>
+            <div className="w-full h-full text-white bg-black flex flex-col overflow-hidden">
+                {/* Only show TitleBar in Electron or desktop */}
+                {isElectron && <TitleBar />}
 
-            <div className="app-container flex-1 relative w-full overflow-hidden">
-                <AnimatePresence mode="wait">
-                    {currentScreen === SCREENS.HOME && (
-                        <motion.div
-                            key="home"
-                            variants={PAGE_VARIANTS}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={PAGE_TRANSITION}
-                            className="h-full"
-                        >
-                            <HomeScreen
-                                onStartGame={handleStartGame}
-                                onShowStats={handleShowStats}
-                                onHostLobby={handleHostLobby}
-                                onJoinLobby={handleJoinLobby}
+                <div className="app-container flex-1 relative w-full overflow-hidden">
+                    <AnimatePresence mode="wait">
+                        {currentScreen === SCREENS.HOME && (
+                            <motion.div
+                                key="home"
+                                variants={PAGE_VARIANTS}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={PAGE_TRANSITION}
+                                className="h-full"
+                            >
+                                <HomeScreen
+                                    onStartGame={handleStartGame}
+                                    onShowStats={handleShowStats}
+                                    onHostLobby={handleHostLobby}
+                                    onJoinLobby={handleJoinLobby}
 
-                            />
-                        </motion.div>
-                    )}
+                                />
+                            </motion.div>
+                        )}
 
-                    {currentScreen === SCREENS.GAME && (
-                        <motion.div
-                            key="game"
-                            variants={PAGE_VARIANTS}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={PAGE_TRANSITION}
-                            className="h-full"
-                        >
-                            <GameScreen
-                                gameSettings={gameSettings}
-                                onGameEnd={handleGameEnd}
-                                onQuit={handleQuitGame}
-                                isMultiplayer={isMultiplayer}
-                                roomId={isMultiplayer ? lobbyData?.roomId : null}
-                                multiplayerLocations={isMultiplayer ? lobbyData?.roundLocations : null}
-                                isHost={isMultiplayer ? lobbyData?.hostId === socket.id : false}
+                        {currentScreen === SCREENS.GAME && (
+                            <motion.div
+                                key="game"
+                                variants={PAGE_VARIANTS}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={PAGE_TRANSITION}
+                                className="h-full"
+                            >
+                                <GameScreen
+                                    gameSettings={gameSettings}
+                                    onGameEnd={handleGameEnd}
+                                    onQuit={handleQuitGame}
+                                    isMultiplayer={isMultiplayer}
+                                    roomId={isMultiplayer ? lobbyData?.roomId : null}
+                                    multiplayerLocations={isMultiplayer ? lobbyData?.roundLocations : null}
+                                    isHost={isMultiplayer ? lobbyData?.hostId === socket.id : false}
 
-                            />
-                        </motion.div>
-                    )}
+                                />
+                            </motion.div>
+                        )}
 
-                    {currentScreen === SCREENS.RESULT && (
-                        <motion.div
-                            key="result"
-                            variants={PAGE_VARIANTS}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={PAGE_TRANSITION}
-                            className="h-full"
-                        >
-                            <ResultScreen
-                                gameData={gameResult}
-                                onPlayAgain={handlePlayAgain}
-                                onGoHome={handleGoHome}
-                                isMultiplayer={isMultiplayer}
-                            />
-                        </motion.div>
-                    )}
-                    {currentScreen === SCREENS.STATS && (
-                        <motion.div
-                            key="stats"
-                            variants={PAGE_VARIANTS}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={PAGE_TRANSITION}
-                            className="h-full"
-                        >
-                            <StatsScreen onBack={handleGoHome} />
-                        </motion.div>
-                    )}
+                        {currentScreen === SCREENS.RESULT && (
+                            <motion.div
+                                key="result"
+                                variants={PAGE_VARIANTS}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={PAGE_TRANSITION}
+                                className="h-full"
+                            >
+                                <ResultScreen
+                                    gameData={gameResult}
+                                    onPlayAgain={handlePlayAgain}
+                                    onGoHome={handleGoHome}
+                                    isMultiplayer={isMultiplayer}
+                                />
+                            </motion.div>
+                        )}
+                        {currentScreen === SCREENS.STATS && (
+                            <motion.div
+                                key="stats"
+                                variants={PAGE_VARIANTS}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={PAGE_TRANSITION}
+                                className="h-full"
+                            >
+                                <StatsScreen onBack={handleGoHome} />
+                            </motion.div>
+                        )}
 
-                    {currentScreen === SCREENS.LOBBY && lobbyData && (
-                        <motion.div
-                            key="lobby"
-                            variants={PAGE_VARIANTS}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={PAGE_TRANSITION}
-                            className="h-full"
-                        >
-                            <LobbyScreen
-                                roomId={lobbyData.roomId}
-                                hostId={lobbyData.hostId}
-                                initialPlayers={lobbyData.players}
-                                initialSettings={lobbyData.settings}
-                                onGameStart={handleMultiplayerGameStart}
-                                onLeaveLobby={handleLeaveLobby}
+                        {currentScreen === SCREENS.LOBBY && lobbyData && (
+                            <motion.div
+                                key="lobby"
+                                variants={PAGE_VARIANTS}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={PAGE_TRANSITION}
+                                className="h-full"
+                            >
+                                <LobbyScreen
+                                    roomId={lobbyData.roomId}
+                                    hostId={lobbyData.hostId}
+                                    initialPlayers={lobbyData.players}
+                                    initialSettings={lobbyData.settings}
+                                    onGameStart={handleMultiplayerGameStart}
+                                    onLeaveLobby={handleLeaveLobby}
 
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
-        </div>
+        </LanguageProvider>
     );
 }

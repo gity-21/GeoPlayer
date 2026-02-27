@@ -5,25 +5,36 @@
   <p>Explore the world via Google Street View, pinpoint your exact location on a map, and challenge your friends in real-time!</p>
 </div>
 
+<div align="center">
+  <video src="assets/vid.mp4" autoplay loop muted playsinline width="100%" style="max-width:900px;border-radius:16px;"></video>
+</div>
+
 <br />
 
-![GeoPlayer Screenshot](https://raw.githubusercontent.com/wiki/your-repo/geoplayer-preview.png) *(Preview Placeholder - Add real screenshot here)*
+---
+
+## 👥 Team
+
+| GitHub | Role |
+|--------|------|
+| [@Taruk21](https://github.com/Taruk21) | Developer |
+| [@mehmetsolves](https://github.com/mehmetsolves) | Developer |
 
 ---
 
-## ✨ Features
+## Features
 
-- **🗺️ Global & Targeted Modes:** Play standard mixed locations worldwide or narrow it down to a single specific country.
-- **🎮 Real-Time Multiplayer Server:** Integrated Socket.IO enables up to 8 players to natively join your local/network sessions easily.
-- **� Deep Gameplay Mechanics:** Earn points based on accurate distance calculations, tracking speed, and combos!
-- **⚡ Battle Royale Mode:** Surviving is key. The player with the lowest score at the end of every round gets eliminated!
-- **� Custom Avatars & Chat:** Use built-in emojis for avatars, set personal colors, and type in live chat while playing in a lobby.
-- **📱 Fully Responsive UI:** Dark theme, glowing futuristic maps, frameless app windows, smooth animations, and interactive transitions using Framer Motion.
-- **🔓 Built-in Bypass Features:** Embeds Google Street View directly without strictly requiring expensive paid Maps APIs, utilizing smart Electron security configurations.
+- **Global & Targeted Modes:** Play standard mixed locations worldwide or narrow it down to a single specific country.
+- **Real-Time Multiplayer Server:** Integrated Socket.IO enables up to 8 players to natively join your local/network sessions easily.
+- **Deep Gameplay Mechanics:** Earn points based on accurate distance calculations, tracking speed, and combos!
+- **Battle Royale Mode:** Surviving is key. The player with the lowest score at the end of every round gets eliminated!
+- **Custom Avatars & Chat:** Use built-in emojis for avatars, set personal colors, and type in live chat while playing in a lobby.
+- **Fully Responsive UI:** Dark theme, glowing futuristic maps, frameless app windows, smooth animations, and interactive transitions using Framer Motion.
+- **Built-in Bypass Features:** Embeds Google Street View directly without strictly requiring expensive paid Maps APIs, utilizing smart Electron security configurations.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Client (Frontend)
 - **Framework:** React 18, Vite
@@ -38,14 +49,16 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these instructions to start the project on your local machine.
 
 ### Prerequisites
 Make sure you have [Node.js](https://nodejs.org/) installed on your machine (`v18.0.0` or higher is recommended).
 
-### 1. Installation
+---
+
+### Windows Installation
 
 Clone this repository and open a terminal in the root directory. You must install dependencies in both the root folder **and** the renderer folder.
 
@@ -59,17 +72,71 @@ npm install
 cd ..
 ```
 
-### 2. Development Mode
-
-The fast workflow automatically runs the Vite dev server and spawns the Electron app concurrently. Hot Reloading is enabled.
+**Run in Development Mode** (Vite dev server + Electron with hot-reload):
 
 ```bash
 npm run dev
 ```
 
+**Build a Windows Installer (.exe):**
+
+```bash
+npm run dist
+```
+
 ---
 
-## 📂 Project Structure
+### Linux Installation
+
+Make sure you have **Node.js v18+** and **npm** installed. You can install them via your package manager:
+
+```bash
+# Ubuntu / Debian
+sudo apt update && sudo apt install -y nodejs npm
+
+# Fedora / RHEL
+sudo dnf install nodejs npm
+
+# Arch Linux
+sudo pacman -S nodejs npm
+```
+
+Then clone and set up the project:
+
+```bash
+# Clone the repository
+git clone https://github.com/Taruk21/GeoPlayer
+cd GeoPlayer
+
+# Install root dependencies (Electron & Server)
+npm install
+
+# Install frontend dependencies
+cd renderer
+npm install
+cd ..
+```
+
+**Run in Development Mode:**
+
+```bash
+npm run dev
+```
+
+**Build a Linux Package (AppImage / .deb):**
+
+```bash
+npm run dist:linux
+```
+
+> **Note:** Building the Electron app on Linux may require additional system tools. For `.deb` packages, ensure `fakeroot` and `dpkg` are installed. For AppImage, no extra tools are needed. If you encounter permission issues, ensure your user has the necessary build tools:
+> ```bash
+> sudo apt install fakeroot dpkg
+> ```
+
+---
+
+## Project Structure
 
 ```bash
 openmap/
@@ -91,7 +158,7 @@ openmap/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 Contributions, issues, and feature requests are welcome!
 
 1. Fork the Project
@@ -102,6 +169,6 @@ Contributions, issues, and feature requests are welcome!
 
 ---
 
-## 📜 License
+## License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.

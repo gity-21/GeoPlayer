@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { modernGuessIcon, modernActualIcon } from './ModernMarker';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Click handler component
 function MapClickHandler({ onMapClick, disabled }) {
@@ -55,6 +56,8 @@ const GameMap = React.memo(function GameMap({
     multiplayerData,
     allRoundsData, // Added for summary map
 }) {
+    const { language, translateCountry } = useLanguage();
+
     const bounds = useMemo(() => {
         if (allRoundsData && allRoundsData.length > 0) {
             const lats = [];
@@ -154,7 +157,9 @@ const GameMap = React.memo(function GameMap({
             {guessPosition && !multiplayerData && (
                 <Marker position={[guessPosition.lat, guessPosition.lng]} icon={modernGuessIcon}>
                     <Popup className="custom-popup">
-                        <span className="font-semibold text-neutral-800">Tahmininiz</span>
+                        <span className="font-semibold text-neutral-800">
+                            Your Guess
+                        </span>
                     </Popup>
                 </Marker>
             )}
@@ -189,9 +194,9 @@ const GameMap = React.memo(function GameMap({
                         // Custom colored marker with Avatar
                         const pIcon = L.divIcon({
                             className: 'custom-div-icon',
-                            html: `<div style="background-color: ${p.color}aa; backdrop-filter: blur(4px); width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${p.color}; box-shadow: 0 0 15px ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 16px;">${p.avatar || '👽'}</div>`,
-                            iconSize: [28, 28],
-                            iconAnchor: [14, 14]
+                            html: `<div style="background-color: ${p.color}aa; backdrop-filter: blur(4px); width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${p.color}; box-shadow: 0 0 15px ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: white;">${p.name ? p.name[0].toUpperCase() : '?'}</div>`,
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
                         });
 
                         return (
@@ -200,7 +205,9 @@ const GameMap = React.memo(function GameMap({
                                     <Popup className="custom-popup">
                                         <div className="flex flex-col items-center">
                                             <span className="font-bold border-b pb-1 mb-1" style={{ color: p.color }}>{p.name}</span>
-                                            <span className="font-mono text-xs text-neutral-600">{p.lastScore} Puan</span>
+                                            <span className="font-mono text-xs text-neutral-600">
+                                                {p.lastScore} pts
+                                            </span>
                                         </div>
                                     </Popup>
                                 </Marker>
@@ -236,7 +243,7 @@ const GameMap = React.memo(function GameMap({
                         <Marker position={[round.actual.lat, round.actual.lng]} icon={modernActualIcon}>
                             <Popup className="custom-popup">
                                 <span className="font-semibold text-neutral-800">
-                                    Round {idx + 1}: {round.actual.city}, {round.actual.country}
+                                    Round {idx + 1}: {round.actual.city}, {translateCountry(round.actual.country)}
                                 </span>
                             </Popup>
                         </Marker>
@@ -245,7 +252,9 @@ const GameMap = React.memo(function GameMap({
                             <Popup className="custom-popup">
                                 <div className="flex flex-col items-center">
                                     <span style={{ color: roundColor }} className="font-bold border-b pb-1 mb-1">Round {idx + 1}</span>
-                                    <span className="font-mono text-xs text-neutral-600">Puan: {round.score}</span>
+                                    <span className="font-mono text-xs text-neutral-600">
+                                        Score: {round.score}
+                                    </span>
                                 </div>
                             </Popup>
                         </Marker>
@@ -270,9 +279,9 @@ const GameMap = React.memo(function GameMap({
 
                 const pIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="background-color: ${p.color}aa; backdrop-filter: blur(4px); width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${p.color}; box-shadow: 0 0 10px ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 12px; opacity: 0.8;">${p.avatar || '👽'}</div>`,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
+                    html: `<div style="background-color: ${p.color}aa; backdrop-filter: blur(4px); width: 20px; height: 20px; border-radius: 50%; border: 2px solid ${p.color}; box-shadow: 0 0 10px ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; opacity: 0.8;">${p.name ? p.name[0].toUpperCase() : '?'}</div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
                 });
 
                 return (
@@ -281,7 +290,7 @@ const GameMap = React.memo(function GameMap({
                             <Popup className="custom-popup">
                                 <div className="flex flex-col items-center">
                                     <span className="font-bold border-b pb-1 mb-1" style={{ color: p.color }}>{p.name}</span>
-                                    <span className="font-mono text-xs text-neutral-600">Toplam: {p.score} Puan</span>
+                                    <span className="font-mono text-xs text-neutral-600">Total: {p.score} pts</span>
                                 </div>
                             </Popup>
                         </Marker>

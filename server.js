@@ -58,7 +58,6 @@ io.on('connection', (socket) => {
                 id: socket.id,
                 name: data.playerName || 'Host',
                 color: data.playerColor || PLAYER_COLORS[0],
-                avatar: data.playerAvatar || '👽',
                 score: 0,
                 guess: null,
                 hasGuessed: false,
@@ -80,24 +79,23 @@ io.on('connection', (socket) => {
         const room = rooms[roomId];
 
         if (!room) {
-            return callback({ success: false, message: 'Oda bulunamadı' });
+            return callback({ success: false, message: 'Room not found' });
         }
 
         if (room.state !== 'waiting') {
-            return callback({ success: false, message: 'Oyun zaten başlamış' });
+            return callback({ success: false, message: 'Game has already started' });
         }
 
         if (room.players.length >= 8) {
-            return callback({ success: false, message: 'Oda dolu (Maks 8 kişi)' });
+            return callback({ success: false, message: 'Room is full (Max 8 players)' });
         }
 
         const assignedColor = data.playerColor || PLAYER_COLORS[room.players.length % PLAYER_COLORS.length];
 
         room.players.push({
             id: socket.id,
-            name: data.playerName || `Oyuncu ${room.players.length + 1}`,
+            name: data.playerName || `Player ${room.players.length + 1}`,
             color: assignedColor,
-            avatar: data.playerAvatar || '👽',
             score: 0,
             guess: null,
             hasGuessed: false,
@@ -257,7 +255,7 @@ io.on('connection', (socket) => {
 
     // Chat System
     socket.on('send_chat', (data) => {
-        const { roomId, message, senderName, senderColor, senderAvatar } = data;
+        const { roomId, message, senderName, senderColor } = data;
         const room = rooms[roomId];
         if (room) {
             io.to(roomId).emit('new_chat', {
@@ -265,7 +263,6 @@ io.on('connection', (socket) => {
                 senderId: socket.id,
                 senderName,
                 senderColor,
-                senderAvatar,
                 message,
                 timestamp: Date.now()
             });
@@ -296,23 +293,6 @@ io.on('connection', (socket) => {
                 } else {
                     const idx = PLAYER_COLORS.indexOf(player.color);
                     player.color = PLAYER_COLORS[(idx + 1) % PLAYER_COLORS.length] || PLAYER_COLORS[0];
-                }
-                io.to(data.roomId).emit('room_updated', {
-                    players: room.players,
-                    hostId: room.hostId,
-                    settings: room.settings
-                });
-            }
-        }
-    });
-
-    socket.on('change_avatar', (data) => {
-        const room = rooms[data.roomId];
-        if (room && room.state === 'waiting') {
-            const player = room.players.find(p => p.id === socket.id);
-            if (player) {
-                if (data.avatar) {
-                    player.avatar = data.avatar;
                 }
                 io.to(data.roomId).emit('room_updated', {
                     players: room.players,
