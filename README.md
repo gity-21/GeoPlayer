@@ -105,7 +105,7 @@ Then clone and set up the project:
 
 ```bash
 # Clone the repository
-git clone [https://github.com/Taruk21/GeoPlayer](https://github.com/gity-21/GeoPlayer)
+git clone https://github.com/gity-21/GeoPlayer
 cd GeoPlayer
 
 # Install root dependencies (Electron & Server)
